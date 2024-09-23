@@ -1,16 +1,21 @@
 import { getFormProps, getInputProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
+import { type SEOHandle } from '@nasa-gcn/remix-seo'
 import { type ActionFunctionArgs } from '@remix-run/node'
 import { Form, useActionData, useSearchParams } from '@remix-run/react'
 import { HoneypotInputs } from 'remix-utils/honeypot/react'
 import { z } from 'zod'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
-import { ErrorList, Field } from '#app/components/forms.tsx'
+import { ErrorList, OTPField } from '#app/components/forms.tsx'
 import { Spacer } from '#app/components/spacer.tsx'
 import { StatusButton } from '#app/components/ui/status-button.tsx'
 import { checkHoneypot } from '#app/utils/honeypot.server.ts'
 import { useIsPending } from '#app/utils/misc.tsx'
 import { validateRequest } from './verify.server.ts'
+
+export const handle: SEOHandle = {
+	getSitemapEntries: () => null,
+}
 
 export const codeQueryParam = 'code'
 export const targetQueryParam = 'target'
@@ -95,17 +100,20 @@ export default function VerifyRoute() {
 				<div className="flex w-full gap-2">
 					<Form method="POST" {...getFormProps(form)} className="flex-1">
 						<HoneypotInputs />
-						<Field
-							labelProps={{
-								htmlFor: fields[codeQueryParam].id,
-								children: 'Code',
-							}}
-							inputProps={{
-								...getInputProps(fields[codeQueryParam], { type: 'text' }),
-								autoComplete: 'one-time-code',
-							}}
-							errors={fields[codeQueryParam].errors}
-						/>
+						<div className="flex items-center justify-center">
+							<OTPField
+								labelProps={{
+									htmlFor: fields[codeQueryParam].id,
+									children: 'Code',
+								}}
+								inputProps={{
+									...getInputProps(fields[codeQueryParam], { type: 'text' }),
+									autoComplete: 'one-time-code',
+									autoFocus: true,
+								}}
+								errors={fields[codeQueryParam].errors}
+							/>
+						</div>
 						<input
 							{...getInputProps(fields[typeQueryParam], { type: 'hidden' })}
 						/>
@@ -119,7 +127,7 @@ export default function VerifyRoute() {
 						/>
 						<StatusButton
 							className="w-full"
-							status={isPending ? 'pending' : form.status ?? 'idle'}
+							status={isPending ? 'pending' : (form.status ?? 'idle')}
 							type="submit"
 							disabled={isPending}
 						>
